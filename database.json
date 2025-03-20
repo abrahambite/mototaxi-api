@@ -1,0 +1,59 @@
+{
+  "usuarios": [
+    {
+      "id": 1,
+      "nombre": "Ejemplo Pasajero",
+      "tipo": "pasajero",
+      "email": "pasajero@example.com",
+      "password": "hashed_password"
+    },
+    {
+      "id": 2,
+      "nombre": "Ejemplo Conductor",
+      "tipo": "conductor",
+      "email": "conductor@example.com",
+      "password": "hashed_password",
+      "vehiculo": "Moto Honda",
+      "placas": "XYZ123",
+      "ubicacion_actual": {
+        "lat": 32.6245,
+        "lng": -115.4521
+      },
+      "disponible": true
+    },
+    {
+      "id": 1742484450181,
+      "nombre": "Juan Pérez",
+      "email": "juan@example.com",
+      "password": "123456",
+      "tipo": "pasajero"
+    }
+  ],
+  "viajes": [
+    {
+      "id": 1,
+      "pasajero_id": 1,
+      "conductor_id": 2,
+      "origen": {
+        "lat": 32.6245,
+        "lng": -115.4521
+      },
+      "destino": {
+        "lat": 32.6223,
+        "lng": -115.45
+      },
+      "estado": "pendiente",
+      "hora_solicitud": "2025-03-19T10:00:00Z"
+    }
+  ],
+  "pagos": [
+    {
+      "id": 1,
+      "viaje_id": 1,
+      "monto": 100,
+      "metodo_pago": "efectivo",
+      "estado": "pagado",
+      "fecha": "2025-03-19T10:30:00Z"
+    }
+  ]
+}
