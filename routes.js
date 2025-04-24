@@ -15,7 +15,7 @@ const saveDatabase = (data) => {
   fs.writeFileSync(databasePath, JSON.stringify(data, null, 2));
 };
 
-// Registro de usuario con teléfono
+// Registro de usuario
 router.post("/register", (req, res) => {
   const { nombre, telefono, password, userType, licencia, vehiculo } = req.body;
   if (!nombre || !telefono || !password || !userType) {
@@ -23,56 +23,59 @@ router.post("/register", (req, res) => {
   }
 
   const db = loadDatabase();
-  if (db.usuarios.find((user) => user.telefono === telefono)) {
+  if (db.usuarios.find((u) => u.telefono === telefono)) {
     return res.status(400).json({ error: "El usuario ya existe" });
   }
 
-  const nuevo = {
+  const newUser = {
     id: Date.now(),
     nombre,
     telefono,
     password,
     tipo: userType,
-    ...(licencia && { licencia }),
-    ...(vehiculo && { vehiculo })
+    licencia: licencia || "",
+    vehiculo: vehiculo || ""
   };
 
-  db.usuarios.push(nuevo);
+  db.usuarios.push(newUser);
   saveDatabase(db);
-  res.json({ message: "Registro exitoso", user: nuevo });
+
+  res.json({ message: "Registro exitoso", user: newUser });
 });
 
-// Login con teléfono
+// Login
 router.post("/login", (req, res) => {
   const { telefono, password } = req.body;
   const db = loadDatabase();
   const user = db.usuarios.find((u) => u.telefono === telefono && u.password === password);
   if (!user) return res.status(400).json({ error: "Credenciales incorrectas" });
-  res.json({ message: "Login exitoso", user });
+
+  res.json({ message: "Inicio de sesión exitoso", user });
 });
 
 // Crear viaje
 router.post("/viajes", (req, res) => {
   const { pasajero_id, origen, destino, metodo_pago } = req.body;
-  if (!pasajero_id || !origen || !destino || !metodo_pago) {
+  if (!pasajero_id || !origen || !destino) {
     return res.status(400).json({ error: "Faltan datos del viaje" });
   }
 
   const db = loadDatabase();
-  const nuevo = {
+  const nuevoViaje = {
     id: Date.now(),
     pasajero_id,
+    conductor_id: null,
     origen,
     destino,
     metodo_pago,
     estado: "pendiente",
-    conductor_id: null,
     hora_solicitud: new Date().toISOString()
   };
 
-  db.viajes.push(nuevo);
+  db.viajes.push(nuevoViaje);
   saveDatabase(db);
-  res.json({ message: "Viaje creado", viaje: nuevo });
+
+  res.json({ message: "Viaje creado", viaje: nuevoViaje });
 });
 
 // Obtener todos los viajes
@@ -81,39 +84,35 @@ router.get("/viajes", (req, res) => {
   res.json(db.viajes);
 });
 
-// Obtener viaje por ID
+// Obtener un viaje por ID
 router.get("/viajes/:id", (req, res) => {
   const db = loadDatabase();
-  const viaje = db.viajes.find(v => v.id == req.params.id);
+  const viaje = db.viajes.find((v) => v.id == req.params.id);
   if (!viaje) return res.status(404).json({ error: "Viaje no encontrado" });
   res.json(viaje);
 });
 
-// Obtener viajes disponibles
-router.get("/viajes-disponibles", (req, res) => {
-  const db = loadDatabase();
-  const disponibles = db.viajes.filter(v => v.estado === "pendiente");
-  res.json(disponibles);
-});
+// Aceptar o actualizar viaje
+router.patch("/viajes/:id", (req, res) => {
+  const { id } = req.params;
+  const { estado, conductor_id } = req.body;
 
-// Aceptar viaje
-router.post("/aceptar-viaje", (req, res) => {
-  const { viaje_id, chofer_id } = req.body;
-  if (!viaje_id || !chofer_id) {
-    return res.status(400).json({ error: "Faltan datos para aceptar el viaje" });
+  const db = loadDatabase();
+  const viaje = db.viajes.find(v => v.id == id);
+  if (!viaje) return res.status(404).json({ error: "Viaje no encontrado" });
+
+  if (estado) viaje.estado = estado;
+  if (conductor_id) {
+    viaje.conductor_id = conductor_id;
+    const conductor = db.usuarios.find(u => u.id == conductor_id);
+    if (conductor) {
+      viaje.nombre_conductor = conductor.nombre;
+      viaje.contacto_conductor = conductor.telefono;
+    }
   }
 
-  const db = loadDatabase();
-  const viaje = db.viajes.find(v => v.id == viaje_id);
-  const chofer = db.usuarios.find(u => u.id == chofer_id);
-
-  if (!viaje || !chofer) return res.status(404).json({ error: "Datos no encontrados" });
-
-  viaje.conductor_id = chofer_id;
-  viaje.estado = "asignado";
-
   saveDatabase(db);
-  res.json({ message: "Viaje aceptado", viaje });
+  res.json({ message: "Viaje actualizado", viaje });
 });
 
 module.exports = router;
