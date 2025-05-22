@@ -7,16 +7,21 @@ router.patch("/viajes/:id", (req, res) => {
   const viaje = db.viajes.find(v => v.id == id);
   if (!viaje) return res.status(404).json({ error: "Viaje no encontrado" });
 
-  if (estado) viaje.estado = estado;
-  if (conductor_id) {
-    viaje.conductor_id = conductor_id;
-    const conductor = db.usuarios.find(u => u.id == conductor_id);
-    if (conductor) {
-      viaje.nombre_conductor = conductor.nombre;
-      viaje.contacto_conductor = conductor.telefono;
-    }
+  // Si el viaje ya fue aceptado, nadie más lo puede tomar
+  if (viaje.estado !== "pendiente") {
+    return res.status(400).json({ error: "Este viaje ya fue aceptado por otro conductor." });
+  }
+
+  // Asignar el conductor que lo aceptó primero
+  viaje.estado = estado || "aceptado";
+  viaje.conductor_id = conductor_id;
+
+  const conductor = db.usuarios.find(u => u.id == conductor_id);
+  if (conductor) {
+    viaje.nombre_conductor = conductor.nombre;
+    viaje.contacto_conductor = conductor.telefono;
   }
 
   saveDatabase(db);
-  res.json({ message: "Viaje actualizado", viaje });
+  res.json({ message: "Viaje aceptado correctamente", viaje });
 });
