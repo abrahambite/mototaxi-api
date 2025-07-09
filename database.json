@@ -4,14 +4,14 @@
       "id": 1,
       "nombre": "Ejemplo Pasajero",
       "tipo": "pasajero",
-      "email": "pasajero@example.com",
+      "telefono": "0000000000",
       "password": "hashed_password"
     },
     {
       "id": 2,
       "nombre": "Ejemplo Conductor",
       "tipo": "conductor",
-      "email": "conductor@example.com",
+      "telefono": "1111111111",
       "password": "hashed_password",
       "vehiculo": "Moto Honda",
       "placas": "XYZ123",
@@ -22,10 +22,10 @@
       "disponible": true
     },
     {
-      "id": 1742484450181,
-      "nombre": "Juan Pérez",
-      "email": "juan@example.com",
-      "password": "123456",
+      "id": 3,
+      "nombre": "Cliente Mototaxi",
+      "telefono": "6861702325",
+      "password": "1234",
       "tipo": "pasajero"
     }
   ],
