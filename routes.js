@@ -85,7 +85,7 @@ router.get("/viajes", (req, res) => {
   res.json(db.viajes);
 });
 
-// Obtener usuarios (para seguimiento)
+// Obtener usuarios
 router.get("/usuarios", (req, res) => {
   const db = loadDatabase();
   res.json(db.usuarios);
@@ -119,7 +119,7 @@ router.patch("/viajes/:id", (req, res) => {
   if (conductor) {
     viaje.nombre_conductor = conductor.nombre;
     viaje.contacto_conductor = conductor.telefono;
-    conductor.disponible = false; // lo marcamos ocupado
+    conductor.disponible = false;
   }
 
   saveDatabase(db);
