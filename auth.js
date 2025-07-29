@@ -3,41 +3,42 @@ const fs = require('fs');
 
 const router = express.Router();
 
-// 📌 Ruta de la base de datos temporal
+// 📌 Cargar base de datos
 const dbPath = './database.json';
-let users = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+const loadDatabase = () => JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+const saveDatabase = (data) => fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
 
 // 📌 Registro de usuario
 router.post('/register', (req, res) => {
-    const { nombre, email, password, tipo } = req.body;
-    
-    if (!nombre || !email || !password || !tipo) {
-        return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-    }
+  const { nombre, email, password, tipo } = req.body;
 
-    const userExists = users.find(user => user.email === email);
-    if (userExists) {
-        return res.status(400).json({ error: 'El usuario ya existe' });
-    }
+  if (!nombre || !email || !password || !tipo) {
+    return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+  }
 
-    const newUser = { id: users.length + 1, nombre, email, password, tipo };
-    users.push(newUser);
-    fs.writeFileSync(dbPath, JSON.stringify(users, null, 2));
+  const users = loadDatabase();
+  if (users.find(user => user.email === email)) {
+    return res.status(400).json({ error: 'El usuario ya existe' });
+  }
 
-    res.status(201).json({ message: 'Usuario registrado con éxito' });
+  const newUser = { id: Date.now(), nombre, email, password, tipo };
+  users.push(newUser);
+  saveDatabase(users);
+
+  res.status(201).json({ message: 'Usuario registrado con éxito', usuario: newUser });
 });
 
-// 📌 Inicio de sesión SIN token
+// 📌 Inicio de sesión
 router.post('/login', (req, res) => {
-    const { email, password } = req.body;
-    
-    const user = users.find(user => user.email === email && user.password === password);
-    if (!user) {
-        return res.status(400).json({ error: 'Credenciales incorrectas' });
-    }
+  const { email, password } = req.body;
+  const users = loadDatabase();
 
-    res.json({ message: 'Inicio de sesión exitoso', usuario: user });
+  const user = users.find(u => u.email === email && u.password === password);
+  if (!user) {
+    return res.status(400).json({ error: 'Credenciales incorrectas' });
+  }
+
+  res.json({ message: 'Inicio de sesión exitoso', usuario: user });
 });
 
-// 📌 Exportar rutas
-module.exports = { router };
+module.exports = router;
