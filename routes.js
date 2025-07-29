@@ -4,7 +4,6 @@ const fs = require("fs");
 const router = express.Router();
 const databasePath = "./database.json";
 
-// Utilidades de Base de Datos
 const loadDatabase = () => {
   if (!fs.existsSync(databasePath)) return { usuarios: [], viajes: [], pagos: [] };
   return JSON.parse(fs.readFileSync(databasePath, "utf8"));
@@ -53,7 +52,7 @@ router.post("/login", (req, res) => {
   res.json({ message: "Inicio de sesión exitoso", user });
 });
 
-// Otras rutas (como viajes)
+// ✅ Obtener viajes
 router.get("/viajes", (req, res) => {
   const db = loadDatabase();
   res.json(db.viajes);
@@ -83,5 +82,5 @@ router.post("/viajes", (req, res) => {
   res.json({ message: "Viaje creado", viaje: nuevoViaje });
 });
 
-// ✅ Exportar router
+// ✅ Exportación CORRECTA
 module.exports = router;
