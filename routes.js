@@ -57,7 +57,7 @@ router.post("/login", (req, res) => {
 // Crear viaje
 router.post("/viajes", (req, res) => {
   const { pasajero_id, origen, destino, metodo_pago } = req.body;
-  if (!pasajero_id || !origen || !destino) {
+  if (!pasajero_id || !origen || !destino || !metodo_pago) {
     return res.status(400).json({ error: "Faltan datos del viaje" });
   }
 
