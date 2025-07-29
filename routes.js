@@ -4,18 +4,17 @@ const fs = require("fs");
 const router = express.Router();
 const databasePath = "./database.json";
 
-// Cargar base de datos
+// Utilidades de Base de Datos
 const loadDatabase = () => {
   if (!fs.existsSync(databasePath)) return { usuarios: [], viajes: [], pagos: [] };
   return JSON.parse(fs.readFileSync(databasePath, "utf8"));
 };
 
-// Guardar base de datos
 const saveDatabase = (data) => {
   fs.writeFileSync(databasePath, JSON.stringify(data, null, 2));
 };
 
-// Registro
+// ✅ Registro
 router.post("/register", (req, res) => {
   const { nombre, telefono, password, userType, licencia, vehiculo } = req.body;
   if (!nombre || !telefono || !password || !userType) {
@@ -44,7 +43,7 @@ router.post("/register", (req, res) => {
   res.json({ message: "Registro exitoso", user: newUser });
 });
 
-// Login
+// ✅ Login
 router.post("/login", (req, res) => {
   const { telefono, password } = req.body;
   const db = loadDatabase();
@@ -54,10 +53,15 @@ router.post("/login", (req, res) => {
   res.json({ message: "Inicio de sesión exitoso", user });
 });
 
-// Crear viaje
+// Otras rutas (como viajes)
+router.get("/viajes", (req, res) => {
+  const db = loadDatabase();
+  res.json(db.viajes);
+});
+
 router.post("/viajes", (req, res) => {
   const { pasajero_id, origen, destino, metodo_pago } = req.body;
-  if (!pasajero_id || !origen || !destino || !metodo_pago) {
+  if (!pasajero_id || !origen || !destino) {
     return res.status(400).json({ error: "Faltan datos del viaje" });
   }
 
@@ -79,51 +83,5 @@ router.post("/viajes", (req, res) => {
   res.json({ message: "Viaje creado", viaje: nuevoViaje });
 });
 
-// Obtener todos los viajes
-router.get("/viajes", (req, res) => {
-  const db = loadDatabase();
-  res.json(db.viajes);
-});
-
-// Obtener usuarios
-router.get("/usuarios", (req, res) => {
-  const db = loadDatabase();
-  res.json(db.usuarios);
-});
-
-// Obtener un viaje por ID
-router.get("/viajes/:id", (req, res) => {
-  const db = loadDatabase();
-  const viaje = db.viajes.find((v) => v.id == req.params.id);
-  if (!viaje) return res.status(404).json({ error: "Viaje no encontrado" });
-  res.json(viaje);
-});
-
-// Aceptar o actualizar viaje
-router.patch("/viajes/:id", (req, res) => {
-  const { id } = req.params;
-  const { estado, conductor_id } = req.body;
-
-  const db = loadDatabase();
-  const viaje = db.viajes.find(v => v.id == id);
-  if (!viaje) return res.status(404).json({ error: "Viaje no encontrado" });
-
-  if (viaje.estado !== "pendiente") {
-    return res.status(400).json({ error: "Este viaje ya fue aceptado por otro conductor." });
-  }
-
-  viaje.estado = estado || "aceptado";
-  viaje.conductor_id = conductor_id;
-
-  const conductor = db.usuarios.find(u => u.id == conductor_id);
-  if (conductor) {
-    viaje.nombre_conductor = conductor.nombre;
-    viaje.contacto_conductor = conductor.telefono;
-    conductor.disponible = false;
-  }
-
-  saveDatabase(db);
-  res.json({ message: "Viaje aceptado correctamente", viaje });
-});
-
+// ✅ Exportar router
 module.exports = router;
