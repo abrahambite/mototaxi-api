@@ -10,10 +10,12 @@ datasource db {
 
 model User {
   id           Int      @id @default(autoincrement())
-  name         String?
-  email        String   @unique
+  nombre       String?
+  telefono     String   @unique
   passwordHash String
-  role         String   @default("pasajero")
+  tipo         String   @default("pasajero") // pasajero | conductor | admin
+  vehiculo     String?
+  placas       String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
