@@ -1,7 +1,7 @@
 // controllers/authController.js
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const prisma = require('../prisma/client'); // nuestro cliente Prisma
+const prisma = require('../prisma/client'); // Prisma
 
 const generarToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -15,7 +15,6 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'Teléfono y contraseña son obligatorios' });
     }
 
-    // ¿ya existe?
     const existe = await prisma.user.findUnique({ where: { telefono } });
     if (existe) {
       return res.status(400).json({ message: 'El teléfono ya está registrado' });
