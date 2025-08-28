@@ -1,63 +1,78 @@
-const Usuario = require('../models/Usuario');
+// controllers/authController.js
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const prisma = require('../prisma/client'); // nuestro cliente Prisma
 
-// Función para generar un token
-const generarToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '30d',
-  });
-};
+const generarToken = (id) =>
+  jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
+// POST /api/auth/register
 exports.register = async (req, res) => {
   try {
     const { nombre, telefono, password, tipo, vehiculo, placas } = req.body;
-    
-    const existeUsuario = await Usuario.findOne({ telefono });
-    if (existeUsuario) {
+
+    if (!telefono || !password) {
+      return res.status(400).json({ message: 'Teléfono y contraseña son obligatorios' });
+    }
+
+    // ¿ya existe?
+    const existe = await prisma.user.findUnique({ where: { telefono } });
+    if (existe) {
       return res.status(400).json({ message: 'El teléfono ya está registrado' });
     }
 
-    const usuario = await Usuario.create({
-      nombre,
-      telefono,
-      password,
-      tipo,
-      vehiculo: tipo === 'conductor' ? vehiculo : undefined,
-      placas: tipo === 'conductor' ? placas : undefined,
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        nombre: nombre ?? null,
+        telefono,
+        passwordHash,
+        tipo: tipo || 'pasajero',
+        vehiculo: tipo === 'conductor' ? (vehiculo ?? null) : null,
+        placas:   tipo === 'conductor' ? (placas   ?? null) : null,
+      },
     });
 
-    if (usuario) {
-      res.status(201).json({
-        _id: usuario._id,
-        nombre: usuario.nombre,
-        tipo: usuario.tipo,
-        token: generarToken(usuario._id),
-      });
-    } else {
-      res.status(400).json({ message: 'Datos de usuario inválidos' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: 'Error en el servidor', error: error.message });
+    return res.status(201).json({
+      id: user.id,
+      nombre: user.nombre,
+      tipo: user.tipo,
+      token: generarToken(user.id),
+    });
+  } catch (err) {
+    console.error('register error:', err);
+    return res.status(500).json({ message: 'Error en el servidor' });
   }
 };
 
+// POST /api/auth/login
 exports.login = async (req, res) => {
   try {
     const { telefono, password } = req.body;
-    
-    const usuario = await Usuario.findOne({ telefono });
 
-    if (usuario && (await usuario.compararPassword(password))) {
-      res.json({
-        _id: usuario._id,
-        nombre: usuario.nombre,
-        tipo: usuario.tipo,
-        token: generarToken(usuario._id),
-      });
-    } else {
-      res.status(401).json({ message: 'Teléfono o contraseña incorrectos' });
+    if (!telefono || !password) {
+      return res.status(400).json({ message: 'Teléfono y contraseña son obligatorios' });
     }
-  } catch (error) {
-    res.status(500).json({ message: 'Error en el servidor', error: error.message });
+
+    const user = await prisma.user.findUnique({ where: { telefono } });
+    if (!user) {
+      return res.status(401).json({ message: 'Teléfono o contraseña incorrectos' });
+    }
+
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) {
+      return res.status(401).json({ message: 'Teléfono o contraseña incorrectos' });
+    }
+
+    return res.json({
+      id: user.id,
+      nombre: user.nombre,
+      tipo: user.tipo,
+      token: generarToken(user.id),
+    });
+  } catch (err) {
+    console.error('login error:', err);
+    return res.status(500).json({ message: 'Error en el servidor' });
   }
 };
