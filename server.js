@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
-const authRoutes = require('./authRoutes'); // ← usa tu archivo existente
+const authRoutes = require('./authRoutes'); // usa el archivo de la raíz
 
 const app = express();
 
@@ -11,9 +11,11 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 app.get('/', (req, res) => res.send('MotoTaxi API OK'));
+
 app.use('/api/auth', authRoutes);
 
 app.use((req, res) => res.status(404).json({ message: 'Not found' }));
+
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ message: 'Server error' });
