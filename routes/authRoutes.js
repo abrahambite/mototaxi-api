@@ -1,7 +1,7 @@
-// authRoutes.js
+// routes/authRoutes.js
 const express = require('express');
 const router = express.Router();
-const { register, login } = require('./controllers/authController'); // Prisma
+const { register, login } = require('../controllers/authController'); // PRISMA
 
 router.post('/register', register);
 router.post('/login', login);
