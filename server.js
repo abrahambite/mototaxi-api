@@ -1,4 +1,4 @@
-// server.js
+// server.js  (este es TODO el archivo)
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -6,11 +6,10 @@ const cors = require('cors');
 const authRoutes = require('./routes/authRoutes'); // usa el de /routes (PRISMA)
 
 const app = express();
-
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-// Health check
+// Health check claro (verás este texto en la URL base)
 app.get('/', (req, res) => res.send('MotoTaxi API OK (PRISMA MODE)'));
 
 // Rutas
@@ -26,6 +25,4 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log('Server listening on', PORT, '— PRISMA MODE');
-});
+app.listen(PORT, () => console.log('Server listening on', PORT, '— PRISMA MODE'));
