@@ -1,13 +1,14 @@
-// controllers/authController.js
+// routes/authRoutes.js  (controladores inline con PRISMA)
+const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const prisma = require('../prisma/client'); // PRISMA (no mongoose)
+const prisma = require('../prisma/client');
 
-const generarToken = (id) =>
-  jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+const router = express.Router();
+const generarToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
 // POST /api/auth/register
-exports.register = async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
     const { nombre, telefono, password, tipo, vehiculo, placas } = req.body;
 
@@ -43,10 +44,10 @@ exports.register = async (req, res) => {
     console.error('register error:', err);
     return res.status(500).json({ message: 'Error en el servidor' });
   }
-};
+});
 
 // POST /api/auth/login
-exports.login = async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { telefono, password } = req.body;
 
@@ -74,4 +75,6 @@ exports.login = async (req, res) => {
     console.error('login error:', err);
     return res.status(500).json({ message: 'Error en el servidor' });
   }
-};
+});
+
+module.exports = router;
